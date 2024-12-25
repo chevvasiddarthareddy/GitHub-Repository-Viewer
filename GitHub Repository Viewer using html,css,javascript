@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Repositories Viewer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+
+    #app {
+      max-width: 600px;
+      margin: 50px auto;
+      text-align: center;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    form {
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 10px;
+      width: 70%;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 10px 15px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    #repoList {
+      text-align: left;
+      margin-top: 20px;
+    }
+
+    .repo {
+      padding: 10px;
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+
+    .repo a {
+      text-decoration: none;
+      color: #007bff;
+    }
+
+    .repo a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>GitHub Repositories Viewer</h1>
+    <form id="userForm">
+      <input type="text" id="username" placeholder="Enter GitHub username" required>
+      <button type="submit">Search</button>
+    </form>
+    <div id="repoList"></div>
+  </div>
+  <script>
+    const userForm = document.getElementById("userForm");
+    const repoList = document.getElementById("repoList");
+
+    userForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const username = document.getElementById("username").value.trim();
+
+      if (!username) {
+        alert("Please enter a GitHub username.");
+        return;
+      }
+
+      try {
+        repoList.innerHTML = "<p>Loading...</p>";
+        const response = await fetch(`https://api.github.com/users/${username}/repos`);
+
+        if (!response.ok) {
+          throw new Error("User not found or API error.");
+        }
+
+        const repos = await response.json();
+        displayRepos(repos);
+      } catch (error) {
+        repoList.innerHTML = `<p style="color:red;">${error.message}</p>`;
+      }
+    });
+
+    function displayRepos(repos) {
+      if (repos.length === 0) {
+        repoList.innerHTML = "<p>No repositories found.</p>";
+        return;
+      }
+
+      const repoElements = repos.map((repo) => {
+        return `
+          <div class="repo">
+            <h3>
+              <a href="${repo.html_url}" target="_blank">${repo.name}</a>
+            </h3>
+            <p>${repo.description || "No description available."}</p>
+            <p><strong>⭐ Stars:</strong> ${repo.stargazers_count}</p>
+            <p><strong>🍴 Forks:</strong> ${repo.forks_count}</p>
+          </div>
+        `;
+      });
+
+      repoList.innerHTML = repoElements.join("");
+    }
+  </script>
+</body>
+</html>
